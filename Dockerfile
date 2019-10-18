@@ -4,7 +4,7 @@ FROM \
 LABEL \
     name="bifrost-ariba_plasmidfinder" \
     description="Docker environment for ariba_plasmidfinder in bifrost" \
-    version="2.0" \
+    version="2.0.5" \
     DBversion="28/08/19" \
     maintainer="kimn@ssi.dk;"
 
