@@ -1,5 +1,5 @@
 FROM \
-    ssidk/bifrost-base:2.0
+    ssidk/bifrost-base:2.0.5
 
 LABEL \
     name="bifrost-ariba_plasmidfinder" \
@@ -9,9 +9,7 @@ LABEL \
     maintainer="kimn@ssi.dk;"
 
 RUN \
-    # Next 3 are for make which is needed by ariba for install
-    apt-get update -qq --fix-missing; \
-    apt-get install -y -qq ariba=2.13.3+ds-1; \
+    conda install -yq -c conda-forge -c bioconda -c defaults ariba==2.13.3; \
     # In base image
     cd /bifrost_resources; \
     mkdir plasmidfinder; \
@@ -20,4 +18,6 @@ RUN \
     ariba prepareref -f plasmidfinder.fa -m plasmidfinder.tsv ref_db; 
 
 ENTRYPOINT \
-    ["/bifrost_resources/docker_umask_002.sh"]
+    [ "/bifrost/whats_my_species/launcher.py"]
+CMD \
+    [ "/bifrost/whats_my_species/launcher.py", "--help"]
