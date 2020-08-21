@@ -1,23 +1,29 @@
 #-Basic info----------------------------------------------------------------------------------------
-name: ariba_plasmidfinder
-version: 2.0.7
+display_name: ariba_plasmidfinder
+name: &name ariba_plasmidfinder__unspecified__unspecified
+version:
+  schema: 2.0
+  code: unspecified
+  resource: unspecified
 #---------------------------------------------------------------------------------------------------
 
 #-Details-------------------------------------------------------------------------------------------
 details:
-  category: plasmid
-  schema_version: 2.0
   target: sample
-  type: pipeline
-  recommendation: recommended
   description: >
     This preforms read based mapping against the plasmidfinder DB's. The options show the species entries 
     which will be attempted for mlst with key originating from the species DB. This is done against 
     the cge_db using ariba.
 #---------------------------------------------------------------------------------------------------
 
-#-Docker location-----------------------------------------------------------------------------------
-dockerfile: &dockerfile "docker://ssidk/bifrost-ariba_plasmidfinder:2.0.7"
+#-Category info-------------------------------------------------------------------------------------
+category: [plasmid]
+#---------------------------------------------------------------------------------------------------
+
+#-Install-------------------------------------------------------------------------------------------
+install:
+  path: # Set by install program
+  dockerfile: docker://ssidk/bifrost_ariba_plasmidfinder:unspecified__unspecified
 #---------------------------------------------------------------------------------------------------
 
 #-Options-------------------------------------------------------------------------------------------
@@ -26,7 +32,7 @@ options:
 
 #-Required resource files---------------------------------------------------------------------------
 resources:
-  database_path: "/bifrost_resources/plasmidfinder/ref_db/"
+  database_path: "/bifrost_ariba_plasmidfinder/resources/plasmidfinder/ref_db/"
 #---------------------------------------------------------------------------------------------------
 
 #-Requirements to run component---------------------------------------------------------------------
@@ -52,7 +58,7 @@ db_values_changes:
     report:
       plasmid:
         title: Plasmid
-        info: *dockerfile
+        info: *name
         columns:  # headers, these values are statically present in datadump
           - {id: "gene", name: "gene"}
           - {id: "coverage", name: "%cov"}
