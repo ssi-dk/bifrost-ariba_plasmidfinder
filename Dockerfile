@@ -1,38 +1,67 @@
-FROM ssidk/bifrost-base:2.0.7
+# This is intended to run in Github Actions
+# Arg can be set to dev for testing purposes
+ARG BUILD_ENV="prod"
+ARG NAME="bifrost_bifrost_ariba_plasmidfinder"
+ARG CODE_VERSION="unspecified"
+ARG RESOURCE_VERSION="200814"
+ARG MAINTAINER="kimn@ssi.dk"
 
-ARG version="2.0.7"
-ARG last_updated="19/07/2019"
-ARG name="ariba_plasmidfinder"
-ARG full_name="bifrost-${name}"
+# For dev build include testing modules via pytest done on github and in development.
+# Watchdog is included for docker development (intended method) and should preform auto testing 
+# while working on *.py files
+#
+# Test data is in bifrost_run_launcher:dev
+#- Source code (development):start------------------------------------------------------------------
+FROM ssidk/bifrost_run_launcher:dev as build_dev
+ONBUILD ARG NAME
+ONBUILD COPY . /${NAME}
+ONBUILD WORKDIR /${NAME}
+ONBUILD RUN \
+    sed -i'' 's/<code_version>/'"${CODE_VERSION}"'/g' ${NAME}/config.yaml; \
+    sed -i'' 's/<resource_version>/'"${RESOURCE_VERSION}"'/g' ${NAME}/config.yaml; \
+    pip install -r requirements.dev.txt;
+#- Source code (development):end--------------------------------------------------------------------
 
+#- Source code (productopm):start-------------------------------------------------------------------
+FROM continuumio/miniconda3:4.7.10 as build_prod
+ONBUILD ARG NAME
+ONBUILD WORKDIR ${NAME}
+ONBUILD COPY ${NAME} ${NAME}
+ONBUILD COPY setup.py setup.py
+ONBUILD COPY requirements.txt requirements.txt
+ONBUILD RUN \
+    sed -i'' 's/<code_version>/'"${CODE_VERSION}"'/g' ${NAME}/config.yaml; \
+    sed -i'' 's/<resource_version>/'"${RESOURCE_VERSION}"'/g' ${NAME}/config.yaml; \
+    ls; \
+    pip install -r requirements.txt
+#- Source code (productopm):end---------------------------------------------------------------------
+
+#- Use development or production to and add info: start---------------------------------------------
+FROM build_${BUILD_ENV}
+ARG NAME
 LABEL \
-    name=${name} \
-    description="Docker environment for ${full_name}" \
-    version=${version} \
-    resource_version=${last_updated} \
-    maintainer="kimn@ssi.dk;"
+    name=${NAME} \
+    description="Docker environment for ${NAME}" \
+    code_version="${CODE_VERSION}" \
+    resource_version="${RESOURCE_VERSION}" \
+    environment="${BUILD_ENV}" \
+    maintainer="${MAINTAINER}"
+#- Use development or production to and add info: end---------------------------------------------
 
 #- Tools to install:start---------------------------------------------------------------------------
 RUN \
-    apt-get update && apt-get install -y -qq --fix-missing \
-        ariba=2.13.3+ds-1;
+    conda install -yq -c conda-forge -c bioconda -c default snakemake-minimal==5.7.1; \
+    conda install -yq -c conda-forge -c bioconda -c default ariba==2.14.5;
 #- Tools to install:end ----------------------------------------------------------------------------
 
 #- Additional resources (files/DBs): start ---------------------------------------------------------
-RUN cd /bifrost_resources && \
-    mkdir plasmidfinder && \
-    cd plasmidfinder && \
-    ariba getref plasmidfinder plasmidfinder --version 1307168 && \
+WORKDIR /${NAME}/resources/plasmidfinder
+RUN \
+    ariba getref plasmidfinder plasmidfinder --version 1710600 && \
     ariba prepareref -f plasmidfinder.fa -m plasmidfinder.tsv ref_db; 
 #- Additional resources (files/DBs): end -----------------------------------------------------------
 
-#- Source code:start -------------------------------------------------------------------------------
-RUN cd /bifrost && \
-    git clone --branch ${version} https://github.com/ssi-dk/${full_name}.git ${name};
-#- Source code:end ---------------------------------------------------------------------------------
-
 #- Set up entry point:start ------------------------------------------------------------------------
-ENV PATH /bifrost/${name}/:$PATH
-ENTRYPOINT ["launcher.py"]
-CMD ["launcher.py", "--help"]
+ENTRYPOINT ["python3", "-m", "bifrost_ariba_plasmidfinder"]
+CMD ["python3", "-m", "bifrost_ariba_plasmidfinder", "--help"]
 #- Set up entry point:end --------------------------------------------------------------------------
