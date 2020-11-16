@@ -51,7 +51,7 @@ RUN \
 #- Additional resources (files/DBs): start ---------------------------------------------------------
 WORKDIR /${NAME}/resources/plasmidfinder
 RUN \
-    ariba getref plasmidfinder plasmidfinder --version 1710600 && \
+    ariba getref plasmidfinder plasmidfinder --version 4ece4b7 && \
     ariba prepareref -f plasmidfinder.fa -m plasmidfinder.tsv ref_db; 
 #- Additional resources (files/DBs): end -----------------------------------------------------------
 
